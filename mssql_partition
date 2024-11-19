@@ -1,0 +1,394 @@
+1. 암호화 
+단방향 암호화 : 비밀번호 등과 같이 복호화가 필요 없는 암호화 ※.SHA2_256
+
+구문은 HASHBYTES(@ALGORITHM, @DATA) 로 구성이 되어 있음.
+
+
+ALGORITHM에 들어갈 변수는 MD2 | MD4 | MD5 | SHA | SHA1 | SHA2_256 | SHA2_512 사용 가능.
+
+
+예제
+DECLARE @PASSWORD1 VARCHAR(MAX) = 'password'
+DECLARE @PASSWORD2 NVARCHAR(MAX) = 'password’
+
+SELECT HASHBYTES('SHA2_256', @PASSWORD1);
+-- 결과 : 0x5E884898DA28047151D0E56F8DC6292773603D0D6AABBDD62A11EF721D1542D8
+
+SELECT HASHBYTES('SHA2_256', @PASSWORD2);
+-- 결과 : 0xE201065D0554652615C320C00A1D5BC8EDCA469D72C2790E24152D0C1E2B6189
+
+
+
+사용 시 주의점
+데이터 형에 따라 암호화 값이 다름. 
+하나는 VARCHAR 그리고 다른 하나는 NVARCHAR로 구현 시 다른 결과 값을 확인할 수 있다.
+
+
+
+
+
+2. 양방향 암호화 – 키 백업 및 복구에 주의할 것
+
+마스터키(MASTER KEY) 관리 : 
+생성 : CREATE MASTER KEY ENCRYPTION BY PASSWORD  = 'TestPassword1234!@#$';
+삭제 : DROP MASTER KEY;
+백업 : BACKUP MASTER KEY TO FILE='c:\MASTERKEY\test' -- 저장 파일 위치.
+             ENCRYPTION BY PASSWORD='TestPassword1234!@#$’;  
+          GO
+복구 : RESTORE MASTER KEY
+             FROM FILE = 'c:\MASTERKEY\test’
+             DECRYPTION BY PASSWORD = 'TestPassword1234!@#$'  
+             ENCRYPTION BY PASSWORD = 'TestPassword1234!@#$';
+          GO
+
+인증서(CERTIFICATE) 관리 : 
+생성 : CREATE CERTIFICATE Certi_Key WITH SUBJECT = ＇Certi_Key＇;
+삭제 : DROP CERTIFICATE Certi_Key; 
+
+대칭키(SYMMETRIC KEY) 관리
+생성 : CREATE SYMMETRIC KEY SYN_Key WITH ALGORITHM = AES_256  ENCRYPTION BY CERTIFICATE Certi_Key;
+삭제 : DROP SYMMETRIC KEY SYN_Key;
+생성 : CREATE SYMMETRIC KEY SYN_Key2 WITH ALGORITHM = AES_256  ENCRYPTION BY CERTIFICATE Certi_Key;
+삭제 : DROP SYMMETRIC KEY SYN_Key2;
+
+
+
+
+
+
+3. 양방향 암호화 활용
+
+
+임시테이블 생성 
+CREATE TABLE dbo.user_info ( 
+   seq int IDENTITY(1,1) PRIMARY KEY, 
+   name varbinary(128), 
+   passwd varbinary(128),  
+   phone varbinary(128) 
+)
+
+
+암호화 해서 입력하는 방법
+OPEN SYMMETRIC KEY SYN_Key DECRYPTION BY CERTIFICATE Certi_key; --임시데이터삽입
+INSERT INTO user_info (name, passwd, phone) VALUES ( CONVERT(VARBINARY(max),'가수빈'), CONVERT(VARBINARY(max),'1'), CONVERT(VARBINARY(max),'010-1111-1111')); 
+INSERT INTO user_info (name, passwd, phone) VALUES ( CONVERT(VARBINARY(max),'나애리'), CONVERT(VARBINARY(max),'2'), CONVERT(VARBINARY(max),'010-2222-2222')); 
+INSERT INTO user_info (name, passwd, phone) VALUES ( CONVERT(VARBINARY(max),'도지원'), CONVERT(VARBINARY(max),'3'), CONVERT(VARBINARY(max),'010-3333-3333')); 
+INSERT INTO user_info (name, passwd, phone) VALUES (EncryptByKey(Key_GUID('SYN_Key'), '라건아'), HASHBYTES('SHA2_256', '4'), EncryptByKey(Key_GUID('SYN_Key'), '010-1111-1111')); 
+INSERT INTO user_info (name, passwd, phone) VALUES (EncryptByKey(Key_GUID('SYN_Key'), '마형사'), HASHBYTES('SHA2_256', '5'), EncryptByKey(Key_GUID('SYN_Key'), '010-2222-2222')); 
+INSERT INTO user_info (name, passwd, phone) VALUES (EncryptByKey(Key_GUID('SYN_Key'), '바코드'), HASHBYTES('SHA2_256', '6'), EncryptByKey(Key_GUID('SYN_Key'), '010-3333-3333')); 
+INSERT INTO user_info (name, passwd, phone) VALUES (EncryptByKey(Key_GUID('SYN_Key2'), '사정봉'), HASHBYTES('SHA2_256', '7'), EncryptByKey(Key_GUID('SYN_Key'), '010-7777-7777')); 
+INSERT INTO user_info (name, passwd, phone) VALUES (EncryptByKey(Key_GUID('SYN_Key2'), '아유미'), HASHBYTES('SHA2_256', '8'), EncryptByKey(Key_GUID('SYN_Key'), '010-8888-8889')); 
+INSERT INTO user_info (name, passwd, phone) VALUES (EncryptByKey(Key_GUID('SYN_Key2'), '자동문'), HASHBYTES('SHA2_256', '9'), EncryptByKey(Key_GUID('SYN_Key'), '010-9999-9999')); 
+INSERT INTO user_info (name, passwd, phone) VALUES (EncryptByKey(Key_GUID('SYN_Key2'), '차인표'), HASHBYTES('SHA2_256', 'A'), EncryptByKey(Key_GUID('SYN_Key2'), '020-1111-1111')); 
+INSERT INTO user_info (name, passwd, phone) VALUES (EncryptByKey(Key_GUID('SYN_Key2'), '카메라'), HASHBYTES('SHA2_256', 'B'), EncryptByKey(Key_GUID('SYN_Key2'), '020-2222-2222')); 
+INSERT INTO user_info (name, passwd, phone) VALUES (EncryptByKey(Key_GUID('SYN_Key2'), '파드메'), HASHBYTES('SHA2_256', 'C'), EncryptByKey(Key_GUID('SYN_Key2'), '020-3333-3333')); 
+
+
+
+
+
+
+
+
+
+4. 양방향 암호화 활용
+
+응용프로그램에서 암호화된 컬럼을 조회하는 방법 : 대칭키(SYMMETRIC KEY) 사용
+OPEN  SYMMETRIC  KEY  SYN_Key  DECRYPTION BY CERTIFICATE Certi_key; 
+
+SELECT seq, name,
+	CONVERT(varchar, DecryptByKey(name)) as 'decryptName',
+	phone,
+	CONVERT(varchar, DecryptByKey(phone)) as 'decryptPhone'
+FROM user_info;
+
+
+사용 후  대칭키(SYMMETRIC KEY)는 반드시 종료할 것
+CLOSE SYMMETRIC KEY SYN_Key;
+CLOSE SYMMETRIC KEY SYN_Key2;
+
+
+
+테스트 데이터 생성 방법
+
+MS-SQL CTAS
+	: SELECT * INTO user_info2 FROM user_info;
+
+MS-SQL INTAS
+		: INSERT INTO user_info2
+               SELECT name, passwd, phone FROM user_info; 
+
+
+
+
+
+5. 마스킹
+
+
+Masking 예제
+
+
+화면에 실명이나 전화번호 등을 마스킹 하고자 할 때 사용되는 사용자 함수
+
+-- 함수생성
+CREATE FUNCTION [dbo].[FN_MASK_NAME]
+(
+  @STR VARCHAR(50)
+)
+RETURNS VARCHAR(50)
+AS
+     BEGIN
+         DECLARE @RTNVALUE VARCHAR(50), @STRLEN INT;
+         IF LEN(@STR) = 2
+             BEGIN
+                 SET @RTNVALUE = LEFT(@STR, 1) + '*';
+         END;
+             ELSE
+             IF LEN(@STR) >= 3
+                 BEGIN
+                     SET @STRLEN = LEN(@STR) - 2;
+                     SET @RTNVALUE = LEFT(@STR, 1) + REPLACE(SPACE(@STRLEN), ' ', '*') + RIGHT(@STR, 1);
+             END;
+                 ELSE
+                 BEGIN
+                     SET @RTNVALUE = @STR;
+             END;
+         RETURN @RTNVALUE;
+     END;
+
+
+
+-- 함수 결과
+select DBO.FN_MASK_NAME('홍길')           -- 홍*
+select DBO.FN_MASK_NAME('홍길동')         -- 홍*동
+select DBO.FN_MASK_NAME('홍길길길동동동') -- 홍*****동
+
+
+
+
+
+
+
+6. 변조
+
+테스트DB에서 사용될 데이터를 변조해서 사용하는 사례
+
+
+운영DB의 데이터를 테스트DB에 복사할 경우 개인정보는 변조해서 복사한다.
+
+사용자명 변조 방안
+: 이전 행 1글자 + 현재 행 2글자 + 다음 행 3번째 글자 등을 조합한 이름 사용
+
+SELECT decNm    , SUBSTRING(t1.decNm,1,1) 	        + ISNULL( SUBSTRING(LAG(t1.decNm, 1, NULL) OVER (ORDER BY t1.decNm),3,1) , SUBSTRING(t1.decNm,3,1)+SUBSTRING(t1.decNm,2,1) )		    + ISNULL( SUBSTRING(LEAD(t1.decNm, 1, NULL) OVER (ORDER BY t1.decNm),2,1), SUBSTRING(t1.decNm,2,1)+SUBSTRING(t1.decNm,3,1) ) AS knk_Nm  FROM 
+		(
+		select ROW_NUMBER() OVER(ORDER BY CONVERT(varchar, DecryptByKey(name)) DESC) AS no
+			 , CONVERT(varchar, DecryptByKey(name)) as decNm 
+			 , CONVERT(varchar, DecryptByKey(phone)) as decPhone
+		  from user_info
+		) t1
+		;
+
+
+
+
+
+<파티션 테이블 관리하기>
+
+
+
+
+1. 시스템 파일 만들기
+
+
+CREATE DATABASE db_mig
+ON PRIMARY
+ ( NAME='PARTITION1'
+ , FILENAME='D:\PARTITION\PARTITION1\Partiton1.mdf'
+ , SIZE=1024MB
+ , MAXSIZE=UNLIMITED
+ , FILEGROWTH=256MB
+ )
+LOG ON
+ ( NAME='PARTITION2'
+ , FILENAME='D:\PARTITION\PARTITION1\Partiton2.mdf'
+ , SIZE=256MB
+ , MAXSIZE=UNLIMITED
+ , FILEGROWTH=128MB
+ )
+;
+
+
+
+2. 파티션 파일 및 파일그룹 만들기
+
+ALTER DATABASE db_mig REMOVE FILEGROUP PARTITION1;
+ALTER DATABASE db_mig REMOVE FILEGROUP PARTITION2;
+
+ALTER DATABASE db_mig ADD FILEGROUP PARTITION1;
+ALTER DATABASE db_mig ADD FILEGROUP PARTITION2;
+
+
+ALTER DATABASE db_mig ADD FILEGROUP PARTITION3;
+
+
+
+ALTER DATABASE db_mig
+ON PRIMARY
+ ( NAME='PARTITION3'
+ , FILENAME='D:\PARTITION\PARTITION3\Partiton3.mdf'
+ , SIZE=1024MB
+ , MAXSIZE=UNLIMITED
+ , FILEGROWTH=256MB
+ )
+
+
+
+
+3. 파티션 파일 및 파일그룹 생성 - 매핑하기
+
+
+
+4. 파티션 함수 및 구성표 생성
+   - 어떠한 기준으로 데이터를 분할할지 경계값을 설정한다.
+
+	1). 파티션 함수 생성
+        CREATE PARTITION FUNCTION Partition_FN_ORDERS (CHAR(8))
+        AS RANGE RIGHT FOR VALUES  ( '20000101', '20010101', '20020101', '20030101', '20040101', '20050101', '20060101', '20070101', '20080101'
+                                   , '20090101', '20100101', '20110101', '20120101', '20130101', '20140101', '20150101', '20160101', '20170101' 
+                                   , '20180101', '20190101', '20200101', '20210101', '20220101', '20230101', '20240101', '20250101', '20260101' 
+                                   , '20270101', '20280101', '20290101', '20300101' )
+
+
+	2). 생성된 파티션함수 확인하기
+		SELECT * FROM SYS.partition_functions;
+
+
+	3). 파티션 함수별 경계값 확인하기
+		SELECT * FROM SYS.partition_range_values;
+
+
+
+
+5. 각각의 파티션을 어디에 저장할지 결정 파티션 구성표 생성.
+
+	1). 파티션 구성표 생성.
+		CREATE PARTITION SCHEME Partition_Scheme_ORDERS
+		AS PARTITION Partition_FN_ORDERS TO   ([PARTITION],[PARTITION],[PARTITION],[PARTITION],[PARTITION],[PARTITION],[PARTITION],[PARTITION]
+											  ,[PARTITION],[PARTITION],[PARTITION],[PARTITION],[PARTITION],[PARTITION],[PARTITION],[PARTITION],[PARTITION]
+											  ,[PARTITION2],[PARTITION2],[PARTITION2],[PARTITION2],[PARTITION2],[PARTITION2],[PARTITION2],[PARTITION2]
+											  ,[PARTITION2],[PARTITION2],[PARTITION2],[PARTITION2],[PARTITION2],[PARTITION2],[PARTITION2],[PARTITION2])
+
+	 
+
+
+
+
+	2). 파티션 구성표 확인하기
+	SELECT * FROM SYS.partition_schemes;
+
+
+
+
+	3). 파티션이 각각 어느 파일 그룹에 위치하는지 확인하기.
+	SELECT * FROM SYS.destination_data_spaces AS A
+	INNER JOIN SYS.data_spaces AS B
+	ON A.data_space_id = B.data_space_id
+
+
+
+
+
+6. 파티션 테이블 및 테스트 데이터 생성
+
+	1). 파티션 테이블 생성
+		CREATE TABLE ORDERS (
+		  ORD_NO INT
+		, CUST_NO VARCHAR(100)
+		, ORD_DT CHAR(8)
+		)  ON Partition_Scheme_ORDERS(ORD_DT)
+		;
+
+
+
+	2). 파티션 테이블의 샘플 데이터 생성
+		DECLARE @i INT, @j INT, @k INT,@date CHAR(4), @year CHAR(4)
+		SET @j = 2000
+		BEGIN 
+			WHILE @j < 2030       -- 년도
+			BEGIN
+				SET @k = 1        -- 월
+				WHILE @k < 13
+				BEGIN
+					SET @i = 1    -- 일자
+					WHILE @i < 32
+					BEGIN
+						IF (@k=2)AND(@i=29)
+						BEGIN
+							SET @i = @i + 1
+							BREAK
+						END  
+						ELSE IF (@k IN(4,6,9,11))AND(@i=31)
+						BEGIN
+							SET @i = @i + 1 
+							BREAK
+						END 
+						ELSE
+						BEGIN
+							INSERT INTO ORDERS VALUES ( @i
+													  , NEWID()
+													  , CONCAT(CAST(@j AS VARCHAR), RIGHT('00'+CAST(@k AS VARCHAR), 2) , RIGHT('00'+CAST(@i AS VARCHAR), 2) )
+													  )
+							SET @i = @i + 1
+						END  
+					END
+					SET @k = @k + 1 
+				END
+				SET @j = @j + 1 
+			END
+		END
+
+
+
+
+7. 파티션 인덱스 생성
+	DROP INDEX [ORDERS_X01] ON [dbo].[ORDERS];
+
+	/* 파티션 인덱스 생성하기  */
+	-- CREATE CLUSTERED INDEX [ORDERS_X01] ON [dbo].[ORDERS] ( ORD_DT ASC )  /* 클러스터 인덱스 생성     */
+	CREATE NONCLUSTERED INDEX [ORDERS_X01] ON [dbo].[ORDERS] ( ORD_DT ASC )  /* 비클러스터 인덱스 생성   */
+	WITH ( PAD_INDEX = OFF
+		 , STATISTICS_NORECOMPUTE = OFF
+		 , SORT_IN_TEMPDB = OFF
+		 , DROP_EXISTING = OFF
+		 , ONLINE = OFF
+		 , ALLOW_ROW_LOCKS = ON
+		 , ALLOW_PAGE_LOCKS = ON
+	 ) ON [Partition_Scheme_ORDERS](ORD_DT)
+	;
+
+
+
+
+
+8. 파티션 테이블 확인 및 파티션 번호 확인
+
+	1). 파티션 테이블 찾기
+
+		SELECT distinct SCHEMA_NAME(a.schema_id) as Schema_Name, OBJECT_NAME(a.object_id) as Table_Name
+		  FROM sys.tables a with (nolock)
+		 INNER JOIN sys.partitions b with (nolock)  ON a.object_id = b.object_id
+		 WHERE 1=1
+		   AND b.partition_number > 1
+
+
+
+
+
+
+	2). 파티션 별 저장 건수 조회하기
+		SELECT $Partition.Partition_FN_ORDERS(ORD_DT) AS '파티션번호'
+			 , COUNT(*) AS '저장건수'
+		  FROM ORDERS
+		GROUP BY $Partition.Partition_FN_ORDERS(ORD_DT)
+
+
