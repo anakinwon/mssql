@@ -1,0 +1,1050 @@
+﻿======================================================================================= 
+###############        EGISIT DBMS(MS-SQL) Security Check         ###############
+############### Copyright 2017 EGISIT Co. Ltd. All right Reserved ###############
+======================================================================================= 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+=======================================================================
+[D-1] 기본계정의 패스워드, 정책 등을 변경하여 사용
+      ① SA 계정 패스워드 설정 유무 점검
+      ② 취약한 패스워드 사용여부 점검
+=======================================================================
+① SA 계정 패스워드 설정 유무 점검
+ 
+name                                                                                                                             password
+-------------------------------------------------------------------------------------------------------------------------------- --------------------------------------------------------------------------------------------------------------------------------
+sa                                                                                                                               NULL
+
+(1개 행 적용됨)
+
+취약
+
+(1개 행 적용됨)
+
+(1개 행 적용됨)
+ 
+[CHECK] 출력된 계정의 password에 NULL값이 존재하면 취약
+ 
+② 취약한 패스워드 사용여부 점검
+ 
+계정명과 동일한 패스워드를 사용하는 계정이 존재하지 않음
+ 
+양호
+
+(1개 행 적용됨)
+ 
+[CHECK] 양호로 출력되면 양호이며, 계정명이 출력되면 계정명과 동일한 취약한 패스워드를 사용하는 계정이 출력된 것으로 취약
+ 
+[D-1] END
+=======================================================================
+두 진단 항목 모두 양호로 확인되어야 양호로 판단
+=======================================================================
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+=======================================================================
+[D-2] scott 등 Demonstration 및 불필요 계정을 제거하거나 잠금설정 후 사용
+      MS-SQL 진단기준에 적용하여 아래항목을 점검
+      ① 불필요한 계정 존재여부 점검
+      ② SA계정 Disable 유무 점검
+      ③ Guest계정 Disable 유무 점검
+=======================================================================
+① 불필요한 계정 존재여부 점검
+ 
+계정명 : xtsuser
+계정명 : WASDRGTenantMonitoringRO
+계정명 : sfdata
+계정명 : sa
+계정명 : naviend
+계정명 : cic
+계정명 : azureadmin
+계정명 : ##MS_PolicyTsqlExecutionLogin##
+계정명 : ##MS_PolicyEventProcessingLogin##
+계정명 : ##MS_AgentSigningCertificate##
+ 
+[CHECK] DBMS에 존재하는 모든계정 출력 결과를 확인 후 인터뷰
+
+(1개 행 적용됨)
+
+(1개 행 적용됨)
+ 
+② SA계정 Disable 유무 점검
+ 
+Disable
+ 
+양호
+
+(1개 행 적용됨)
+ 
+[CHECK] Disable 출력시 양호, Enable출력 시 취약
+ 
+③ Guest계정 Disable 유무 점검
+ 
+master - Enable
+tempdb - Enable
+model - Disable
+msdb - Enable
+db_adm - Disable
+db_mst - Disable
+db_nah - Disable
+db_nip - Disable
+db_mig_adm - Disable
+db_mig_mst - Disable
+db_mig_nah - Disable
+db_mig_nip - Disable
+temp_data - Disable
+db_asis - Disable
+db_asis_cic - Disable
+db_asis_nias - Disable
+db_ctx - Disable
+db_zone_cic - Disable
+db_zone_backup - Disable
+db_adm_bak - Disable
+ 
+[CHECK] 전체 Database에 존재하는 Guest계정 Enable/Disable 여부 확인 후 판단
+
+(1개 행 적용됨)
+ 
+[D-2] END
+=======================================================================
+세 진단 항목 모두 양호로 확인되어야 양호로 판단
+=======================================================================
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+=======================================================================
+[D-3] 패스워드의 사용기간 및 복잡도를 기관의 정책에 맞도록 설정
+      MS-SQL 진단기준에 적용하여 아래항목을 점검
+      ① 암호 만료 강제 적용 설정 점검
+      ② 암호 정책 강제 적용 설정 점검
+=======================================================================
+① 암호 만료 강제 적용 설정 점검
+ 
+계정명 : xtsuser
+계정명 : ##MS_PolicyTsqlExecutionLogin##
+계정명 : ##MS_PolicyEventProcessingLogin##
+계정명 : sa
+ 
+취약
+
+(1개 행 적용됨)
+ 
+[CHECK] 암호 만료 강제 적용 설정이 미흡한 계정이 진단결과에 출력되면 취약
+        ※ Windows인증 방식을 통해 DBMS 운영 시 점검 방법
+          * 시작 -> 실행 -> secpol.msc -> 보안 설정 -> 계정 정책 -> 암호 정책 메뉴를 통해 정책 설정 상태 점검 (최대 암호 사용 기간 Check - 안행부 권고 90일) 
+        서버진단 참고항목[W-11]패스워드 최대 사용기간 항목참고
+ 
+② 암호 정책 강제 적용 설정 점검
+ 
+암호 정책을 강제 적용하고 있음
+ 
+양호
+
+(1개 행 적용됨)
+ 
+[CHECK] 암호 정책 강제 적용 설정이 미흡한 계정이 진단결과에 출력되면 취약
+        ※ Windows인증 방식을 통해 DBMS 운영 시 점검 방법
+          * 시작 -> 실행 -> secpol.msc -> 보안 설정 -> 계정 정책 -> 암호 정책 메뉴를 통해 정책 설정 상태 점검 (암호는 복잡성을 만족해야 함 Check - 사용여부) 
+         서버진단 참고항목[W-9] 패스워드 복잡성 설정항목참고
+ 
+[D-3] END
+=======================================================================
+※ 서버 취약점 점검을 수행하였을 경우 Windows 서버 진단결과 참조 (W-9, W-11)
+두 진단 항목 모두 양호로 확인되어야 양호로 판단
+=======================================================================
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+=======================================================================
+[D-4] 데이터베이스 관리자 권한을 꼭 필요한계정 및 그룹에 허용
+=======================================================================
+ 
+- 관리자 권한을 갖고있는 계정 목록 - 
+ 
+계정명 : sa
+계정명 : naviend
+계정명 : cic
+계정명 : azureadmin
+ 
+
+(1개 행 적용됨)
+ 
+[CHECK] 관리자가 아닌 사용자에게 DBA권한이 부여되어 있을경우 취약, 결과확인 후 인터뷰 필요
+ 
+[D-4] END
+=======================================================================
+SA, SYSTEM, Windows 인증을 통한 SQL Server 로그인 계정은 예외
+=======================================================================
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+=======================================================================
+[D-5] 패스워드 재사용 제약 설정
+=======================================================================
+ 
+콘솔 확인 
+
+(1개 행 적용됨)
+ 
+[CHECK] Windows 인증을 통한 로그인 방식을 사용해야 진단가능/미사용 시 해당사항 없음
+        ※ Windows인증 방식을 통해 DBMS 운영 시 점검 방법
+          * 시작 -> 실행 -> secpol.msc -> 보안 설정 -> 계정 정책 -> 암호 정책 메뉴를 통해 정책 설정 상태 점검 (최근 암호 기억 Check - 5개 이상) 
+         서버진단 참고항목[W-16] 최근 암호 기억항목 참고
+ 
+[D-5] END
+=======================================================================
+※ 서버 취약점 점검을 수행하였을 경우 Windows 서버 진단결과 참조 (W-16)
+최근 암호 기억 설정을 통해 이전에 사용하던 패스워드는 새로운 패스워드로 적용이 불가능하게 설정
+=======================================================================
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+=======================================================================
+[D-6] DB 사용자 계정을 개별적으로 부여
+=======================================================================
+ 
+1. 사용자 별 서버 권한 체크
+ 계정 : Class : Database : Permission : Protocol
+ 
+xtsuser : SERVER : master : CONNECT SQL : Null
+sfdata : SERVER : master : VIEW ANY DATABASE : Null
+sfdata : SERVER : master : CONNECT SQL : Null
+sfdata : SERVER : master : CONNECT ANY DATABASE : Null
+sa : SERVER : master : CONNECT SQL : Null
+public : ENDPOINT : Null : CONNECT : VIA
+public : ENDPOINT : Null : CONNECT : TCP
+public : ENDPOINT : Null : CONNECT : NAMED_PIPES
+public : ENDPOINT : Null : CONNECT : SHARED_MEMORY
+public : SERVER : Null : VIEW ANY DATABASE : Null
+naviend : SERVER : db_adm : CONNECT SQL : Null
+DevOpsTenantMonitoringRORole : SERVER : Null : VIEW SERVER STATE : Null
+DevOpsTenantMonitoringRORole : SERVER : Null : CONNECT SQL : Null
+cic : SERVER : db_zone_cic : UNSAFE ASSEMBLY : Null
+cic : SERVER : db_zone_cic : EXTERNAL ACCESS ASSEMBLY : Null
+cic : SERVER : db_zone_cic : VIEW SERVER STATE : Null
+cic : SERVER : db_zone_cic : VIEW ANY DATABASE : Null
+cic : SERVER : db_zone_cic : VIEW ANY DEFINITION : Null
+cic : SERVER : db_zone_cic : VIEW SERVER SECURITY AUDIT : Null
+cic : SERVER : db_zone_cic : VIEW SERVER SECURITY STATE : Null
+cic : SERVER : db_zone_cic : VIEW SERVER PERFORMANCE STATE : Null
+cic : SERVER : db_zone_cic : VIEW ANY ERROR LOG : Null
+cic : SERVER : db_zone_cic : VIEW ANY SECURITY DEFINITION : Null
+cic : SERVER : db_zone_cic : VIEW ANY PERFORMANCE DEFINITION : Null
+cic : SERVER : db_zone_cic : VIEW ANY CRYPTOGRAPHICALLY SECURED DEFINITION : Null
+cic : SERVER : db_zone_cic : SELECT ALL USER SECURABLES : Null
+cic : SERVER : db_zone_cic : SHUTDOWN : Null
+cic : SERVER : db_zone_cic : ALTER ANY EVENT SESSION DROP TARGET : Null
+cic : SERVER : db_zone_cic : ALTER ANY EVENT SESSION DROP EVENT : Null
+cic : SERVER : db_zone_cic : ALTER ANY EVENT SESSION ADD TARGET : Null
+cic : SERVER : db_zone_cic : ALTER ANY EVENT SESSION ADD EVENT : Null
+cic : SERVER : db_zone_cic : ALTER ANY EVENT SESSION OPTION : Null
+cic : SERVER : db_zone_cic : IMPERSONATE ANY LOGIN : Null
+cic : SERVER : db_zone_cic : ALTER ANY EVENT SESSION ENABLE : Null
+cic : SERVER : db_zone_cic : DROP ANY EVENT SESSION : Null
+cic : SERVER : db_zone_cic : ALTER ANY EVENT SESSION DISABLE : Null
+cic : SERVER : db_zone_cic : CREATE TRACE EVENT NOTIFICATION : Null
+cic : SERVER : db_zone_cic : CREATE SERVER ROLE : Null
+cic : SERVER : db_zone_cic : CREATE LOGIN : Null
+cic : SERVER : db_zone_cic : CREATE ENDPOINT : Null
+cic : SERVER : db_zone_cic : CREATE ANY EVENT SESSION : Null
+cic : SERVER : db_zone_cic : CREATE DDL EVENT NOTIFICATION : Null
+cic : SERVER : db_zone_cic : CREATE ANY DATABASE : Null
+cic : SERVER : db_zone_cic : CREATE AVAILABILITY GROUP : Null
+cic : SERVER : db_zone_cic : CONNECT SQL : Null
+cic : SERVER : db_zone_cic : CONTROL SERVER : Null
+cic : SERVER : db_zone_cic : CONNECT ANY DATABASE : Null
+cic : SERVER : db_zone_cic : AUTHENTICATE SERVER : Null
+cic : SERVER : db_zone_cic : ALTER TRACE : Null
+cic : SERVER : db_zone_cic : ALTER SETTINGS : Null
+cic : SERVER : db_zone_cic : ALTER SERVER STATE : Null
+cic : SERVER : db_zone_cic : ALTER ANY SERVER ROLE : Null
+cic : SERVER : db_zone_cic : ALTER RESOURCES : Null
+cic : SERVER : db_zone_cic : ALTER ANY LINKED SERVER : Null
+cic : SERVER : db_zone_cic : ALTER ANY LOGIN : Null
+cic : SERVER : db_zone_cic : ALTER ANY ENDPOINT : Null
+cic : SERVER : db_zone_cic : ALTER ANY EVENT NOTIFICATION : Null
+cic : SERVER : db_zone_cic : ALTER ANY DATABASE : Null
+cic : SERVER : db_zone_cic : ALTER ANY CONNECTION : Null
+cic : SERVER : db_zone_cic : ALTER ANY CREDENTIAL : Null
+cic : SERVER : db_zone_cic : ALTER ANY AVAILABILITY GROUP : Null
+cic : SERVER : db_zone_cic : ALTER ANY SERVER AUDIT : Null
+cic : SERVER : db_zone_cic : ADMINISTER BULK OPERATIONS : Null
+cic : SERVER : db_zone_cic : ALTER ANY EVENT SESSION : Null
+azureadmin : SERVER : db_adm : CONNECT SQL : Null
+##MS_PolicyTsqlExecutionLogin## : SERVER : master : VIEW SERVER STATE : Null
+##MS_PolicyTsqlExecutionLogin## : SERVER : master : VIEW ANY DEFINITION : Null
+##MS_PolicyTsqlExecutionLogin## : SERVER : master : CONNECT SQL : Null
+##MS_PolicyEventProcessingLogin## : SERVER : master : CONNECT SQL : Null
+##MS_AgentSigningCertificate## : SERVER : master : CONNECT SQL : Null
+ 
+2. Database 별 사용자 Role 권한 체크
+계정 : 권한(Role)
+ 
+< master >
+sa:db_owner
+ 
+< tempdb >
+sa:db_owner
+ 
+< model >
+sa:db_owner
+ 
+< msdb >
+##MS_PolicyTsqlExecutionLogin##:PolicyAdministratorRole
+##MS_PolicyEventProcessingLogin##:PolicyAdministratorRole
+sa:db_owner
+ 
+< db_adm >
+sfdata:db_datareader
+azureadmin:db_owner
+ 
+< db_mst >
+sfdata:db_datareader
+azureadmin:db_owner
+ 
+< db_nah >
+azureadmin:db_owner
+ 
+< db_nip >
+naviend:db_owner
+ 
+< db_mig_adm >
+sfdata:db_datareader
+naviend:db_owner
+ 
+< db_mig_mst >
+sfdata:db_datareader
+naviend:db_owner
+ 
+< db_mig_nah >
+sfdata:db_datareader
+naviend:db_owner
+ 
+< db_mig_nip >
+sfdata:db_datareader
+naviend:db_owner
+ 
+< temp_data >
+sfdata:db_datareader
+naviend:db_owner
+ 
+< db_asis >
+azureadmin:db_owner
+ 
+< db_asis_cic >
+azureadmin:db_owner
+ 
+< db_asis_nias >
+azureadmin:db_owner
+ 
+< db_ctx >
+azureadmin:db_owner
+ 
+< db_zone_cic >
+sfdata:db_datareader
+cic:db_denydatawriter
+cic:db_denydatareader
+cic:db_datawriter
+cic:db_datareader
+cic:db_backupoperator
+cic:db_ddladmin
+cic:db_securityadmin
+cic:db_accessadmin
+cic:db_owner
+azureadmin:db_owner
+ 
+< db_zone_backup >
+azureadmin:db_owner
+ 
+< db_adm_bak >
+sfdata:db_datareader
+azureadmin:db_owner
+ 
+ 
+
+(1개 행 적용됨)
+ 
+[CHECK] 계정별로 데이터베이스에 대한 역할멤버(Database role)를 확인하여 필요이상의 권한이 주어져 있는지 확인
+ 
+[D-6] END
+=======================================================================
+1, 2의 출력결과를 참조하여 담당자와 인터뷰를 통해 판단해야 함
+=======================================================================
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+=======================================================================
+[D-7] 원격에서 DB서버로의 접속 제한
+=======================================================================
+ 
+콘솔 확인 
+
+(1개 행 적용됨)
+ 
+[CHECK] 시작 -> 모든 프로그램 -> Microsoft SQL Server 2005 or 2008 -> 구성 도구 -> SQL Server 구성 관리자 
+        -> SQL Server 네트워크 구성 -> TCP/IP -> IP 주소 -> TCP 포트 확인 (Default Port 1433 여부)
+ 
+          ※ Default TCP 1433 Port를 사용중이면 취약하나 OS 자체 방화벽 또는 방화벽, DB접근제어 시스템등과 같은 보안장비를 통해 허용할 IP에 대해서만 접근제어 설정을 하고있을 경우 양호
+          Windows 스크립트결과물 73라인 Active Connections LISTEN 포트리스트 확인
+ 
+[D-7] END
+=======================================================================
+콘솔을 통해 접근제어 설정 확인과 담당자와 인터뷰를 통해 판단해야 함
+=======================================================================
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+=======================================================================
+[D-8] DBA 이외의 인가되지 않은 사용자 시스템 테이블 접근 제한 설정
+=======================================================================
+ 
+- Object의 사용권한에 Public Role이 부여된 시스템 테이블 출력 -
+ 
+PRINCIPAL                                                                                                                        TABLE                                                                                                                            PERMISSION                                                                                                                       STATE
+-------------------------------------------------------------------------------------------------------------------------------- -------------------------------------------------------------------------------------------------------------------------------- -------------------------------------------------------------------------------------------------------------------------------- ------------------------------------------------------------
+public                                                                                                                           lsn_time_mapping                                                                                                                 SELECT                                                                                                                           GRANT
+
+(1개 행 적용됨)
+
+ 
+[CHECK] 출력된 테이블들은 Public Role 부여로 미흡한 상태이지만 사이트 구성 환경의 특성에 따라 
+        Public Role을 사용할 수 있기 때문에 담당자와 인터뷰 후 양호, 취약 여부를 판단해야 함
+ 
+          ※ 취약하다고 판단되어 조치 권고 시 문제가 발생할 수 있기 때문
+ 
+
+(1개 행 적용됨)
+ 
+[D-8] END
+=======================================================================
+출력 결과를 참조하여 담당자와 인터뷰를 통해 판단해야 함
+=======================================================================
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+=======================================================================
+[D-9] 오라클 데이터베이스의 경우 리스너 패스워드 설정
+=======================================================================
+ 
+N/A 
+ 
+[CHECK] MS-SQL은 해당사항 없음 
+ 
+
+(1개 행 적용됨)
+ 
+[D-9] END
+=======================================================================
+콘솔을 통해 설정사항을 확인해야 함
+=======================================================================
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+=======================================================================
+[D-10] 불필요한 ODBC/OLE-DB 데이터 소스와 드라이브 제거
+=======================================================================
+ 
+콘솔 확인 
+ 
+[CHECK] 시작 -> 설정 -> 제어판 -> 관리도구 -> 데이터 원본 (ODBC) -> 시스템DSN -> 불필요한 ODBC/OLE-DB 데이터 소스와 드라이브 확인 
+ 
+          ※ 서버 취약점 점검을 수행하였을 경우 [W-52] 불필요한 ODBC/OLE-DB 데이터 소스와 드라이브 제거항목 참고
+ 
+
+(1개 행 적용됨)
+ 
+[D-10] END
+=======================================================================
+콘솔을 통해 설정사항을 확인해야 함
+=======================================================================
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+=======================================================================
+[D-11] 일정 횟수의 로그인 실패시 이에 대한 잠금정책 설정 
+=======================================================================
+ 
+콘솔 확인 
+ 
+[CHECK] 시작 -> 실행 -> secpol.msc -> 보안 설정 -> 계정 정책 -> 계정 잠금 정책 -> 계정 잠금 임계값 확인 (3회 이상) 
+ 
+          ※ 서버 취약점 점검을 수행하였을 경우 Windows 서버 진단결과 참조 (W-04, W-08)
+          ※ 계정 잠금 임계값이 3회 이상, 계정 잠금 기간이 60분 이상으로 설정되어 있을 시 양호, 미 설정 시 취약, Windows 인증 방식을 사용하고 있지 않은 경우도 취약
+ 
+
+(1개 행 적용됨)
+ 
+[D-11] END
+=======================================================================
+콘솔을 통해 설정사항을 확인해야 함
+=======================================================================
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+=======================================================================
+[D-12] 데이터베이스의 주요 파일 보호 등을 위해 DB 계정의 umask를 022 이상으로 설정 
+       MS-SQL 진단기준에 적용하여 아래항목을 점검
+       SQL Server 데이터 디렉터리의 엑세스 제어 목록(ACL)이 적절하게 설정되어 있는지 점검
+=======================================================================
+ 
+콘솔 확인 
+ 
+1. 데이터베이스의 파일 디렉터리 경로를 확인 
+ 
+Database                                                                                                                         name                                                                                                                             physical_name
+-------------------------------------------------------------------------------------------------------------------------------- -------------------------------------------------------------------------------------------------------------------------------- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+tempdb                                                                                                                           tempdev                                                                                                                          C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\tempdb.mdf
+tempdb                                                                                                                           templog                                                                                                                          C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\templog.ldf
+tempdb                                                                                                                           tempdev2                                                                                                                         C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\tempdb_FE850F93-D213-440A-A4AC-3DC9FEB33AA5.ndf
+tempdb                                                                                                                           tempdev3                                                                                                                         C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\tempdb_5B88F683-35DA-4A0C-A2CC-7DB7B4AA6103.ndf
+tempdb                                                                                                                           tempdev4                                                                                                                         C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\tempdb_0670CD93-8D34-4EF1-A7D5-A2E6F983E187.ndf
+tempdb                                                                                                                           tempdev5                                                                                                                         C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\tempdb_FE2AB215-FFCE-47E4-B2B4-6CB2C31D4FE8.ndf
+tempdb                                                                                                                           tempdev6                                                                                                                         C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\tempdb_1B116E18-076D-4239-8669-1781FA1C353F.ndf
+tempdb                                                                                                                           tempdev7                                                                                                                         C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\tempdb_E680FD82-745A-4EAF-8C11-4C149406D182.ndf
+tempdb                                                                                                                           tempdev8                                                                                                                         C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\tempdb_9D7FD612-B958-411F-A70A-94351357601F.ndf
+tempdb                                                                                                                           tempdev9                                                                                                                         C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\tempdb_0B4029CE-FEA2-4562-BB38-074A5DCBA5F0.ndf
+tempdb                                                                                                                           tempdev10                                                                                                                        C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\tempdb_02230D8B-0C28-4F60-AF8D-938FE085674B.ndf
+tempdb                                                                                                                           tempdev11                                                                                                                        C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\tempdb_A8405808-EC60-441E-9EC8-1B51A88C7545.ndf
+tempdb                                                                                                                           tempdev12                                                                                                                        C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\tempdb_79B0BEC0-77BD-4FC2-A20A-00DFA8174876.ndf
+msdb                                                                                                                             data_0                                                                                                                           C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\msdb.mdf
+msdb                                                                                                                             log                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\msdb.ldf
+db_adm                                                                                                                           data_0                                                                                                                           C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\1fe8c632-0799-4f05-83df-8286cd663f80.mdf
+db_adm                                                                                                                           log                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\1fe8c632-0799-4f05-83df-8286cd663f80.ldf
+db_adm                                                                                                                           XTP                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\1fe8c632-0799-4f05-83df-8286cd663f80.xtp
+db_mst                                                                                                                           data_0                                                                                                                           C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\a153ce07-8315-4362-a46d-2e17155fb4b8.mdf
+db_mst                                                                                                                           log                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\a153ce07-8315-4362-a46d-2e17155fb4b8.ldf
+db_mst                                                                                                                           XTP                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\a153ce07-8315-4362-a46d-2e17155fb4b8.xtp
+db_nah                                                                                                                           data_0                                                                                                                           C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\1be177d9-e7c6-47e0-8ba9-b23756b7bdc6.mdf
+db_nah                                                                                                                           log                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\1be177d9-e7c6-47e0-8ba9-b23756b7bdc6.ldf
+db_nah                                                                                                                           XTP                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\1be177d9-e7c6-47e0-8ba9-b23756b7bdc6.xtp
+db_nip                                                                                                                           data_0                                                                                                                           C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\2217cf49-217f-4b63-ad2a-f396dbfc3ef6.mdf
+db_nip                                                                                                                           log                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\2217cf49-217f-4b63-ad2a-f396dbfc3ef6.ldf
+db_nip                                                                                                                           XTP                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\2217cf49-217f-4b63-ad2a-f396dbfc3ef6.xtp
+db_mig_adm                                                                                                                       data_0                                                                                                                           C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\aa25efa9-91df-4f88-8321-ac9c908296b0.mdf
+db_mig_adm                                                                                                                       log                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\aa25efa9-91df-4f88-8321-ac9c908296b0.ldf
+db_mig_adm                                                                                                                       XTP                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\aa25efa9-91df-4f88-8321-ac9c908296b0.xtp
+db_mig_mst                                                                                                                       data_0                                                                                                                           C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\dfc8c0f0-a55f-470d-8545-04685592175f.mdf
+db_mig_mst                                                                                                                       log                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\dfc8c0f0-a55f-470d-8545-04685592175f.ldf
+db_mig_mst                                                                                                                       XTP                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\dfc8c0f0-a55f-470d-8545-04685592175f.xtp
+db_mig_nah                                                                                                                       data_0                                                                                                                           C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\d161fdbc-212f-48d6-8c22-1b2a6cf22e5c.mdf
+db_mig_nah                                                                                                                       log                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\d161fdbc-212f-48d6-8c22-1b2a6cf22e5c.ldf
+db_mig_nah                                                                                                                       XTP                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\d161fdbc-212f-48d6-8c22-1b2a6cf22e5c.xtp
+db_mig_nip                                                                                                                       data_0                                                                                                                           C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\ebcad9e3-5890-44f0-bc2e-6f6f213a116b.mdf
+db_mig_nip                                                                                                                       log                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\ebcad9e3-5890-44f0-bc2e-6f6f213a116b.ldf
+db_mig_nip                                                                                                                       XTP                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\ebcad9e3-5890-44f0-bc2e-6f6f213a116b.xtp
+temp_data                                                                                                                        data_0                                                                                                                           C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\d33f07f1-5e2d-4360-bdf9-548f80647901.mdf
+temp_data                                                                                                                        log                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\d33f07f1-5e2d-4360-bdf9-548f80647901.ldf
+temp_data                                                                                                                        XTP                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\d33f07f1-5e2d-4360-bdf9-548f80647901.xtp
+db_asis                                                                                                                          data_0                                                                                                                           C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\c57ff7a8-0a31-48fa-9f53-9ab65a389c99.mdf
+db_asis                                                                                                                          log                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\c57ff7a8-0a31-48fa-9f53-9ab65a389c99.ldf
+db_asis                                                                                                                          XTP                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\c57ff7a8-0a31-48fa-9f53-9ab65a389c99.xtp
+db_asis_cic                                                                                                                      data_0                                                                                                                           C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\97bbb6a2-c45b-4b5b-abe3-9804acac5831.mdf
+db_asis_cic                                                                                                                      log                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\97bbb6a2-c45b-4b5b-abe3-9804acac5831.ldf
+db_asis_cic                                                                                                                      XTP                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\97bbb6a2-c45b-4b5b-abe3-9804acac5831.xtp
+db_asis_nias                                                                                                                     data_0                                                                                                                           C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\2184eaaf-1035-48ce-8591-76693f566691.mdf
+db_asis_nias                                                                                                                     log                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\2184eaaf-1035-48ce-8591-76693f566691.ldf
+db_asis_nias                                                                                                                     XTP                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\2184eaaf-1035-48ce-8591-76693f566691.xtp
+db_ctx                                                                                                                           data_0                                                                                                                           C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\de1e7505-e106-4472-8a3b-61adb57837ef.mdf
+db_ctx                                                                                                                           log                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\de1e7505-e106-4472-8a3b-61adb57837ef.ldf
+db_ctx                                                                                                                           XTP                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\de1e7505-e106-4472-8a3b-61adb57837ef.xtp
+db_zone_cic                                                                                                                      data_0                                                                                                                           C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\407a4eb8-e774-49ac-8eae-38bdf86644cb.mdf
+db_zone_cic                                                                                                                      log                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\407a4eb8-e774-49ac-8eae-38bdf86644cb.ldf
+db_zone_cic                                                                                                                      XTP                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\407a4eb8-e774-49ac-8eae-38bdf86644cb.xtp
+db_zone_backup                                                                                                                   data_0                                                                                                                           C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\88478a3c-efe7-4472-bb30-eaf070f9a282.mdf
+db_zone_backup                                                                                                                   log                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\88478a3c-efe7-4472-bb30-eaf070f9a282.ldf
+db_zone_backup                                                                                                                   XTP                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\88478a3c-efe7-4472-bb30-eaf070f9a282.xtp
+db_adm_bak                                                                                                                       data_0                                                                                                                           C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\68d3f09f-4ee1-409c-8677-97f49656f09b.mdf
+db_adm_bak                                                                                                                       log                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\68d3f09f-4ee1-409c-8677-97f49656f09b.ldf
+db_adm_bak                                                                                                                       XTP                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\68d3f09f-4ee1-409c-8677-97f49656f09b.xtp
+model                                                                                                                            data_0                                                                                                                           C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\managed_model.mdf
+model                                                                                                                            log                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\managed_model.ldf
+master                                                                                                                           data_0                                                                                                                           C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\replicatedmaster.mdf
+master                                                                                                                           log                                                                                                                              C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\replicatedmaster.ldf
+master                                                                                                                           db_admn                                                                                                                          C:\SFApplications\Worker.CL.WCOW.SQL22_App19\work\data\master_FA5E2CE3-B923-44A2-88FD-84122E773809.ndf
+
+(68개 행이 영향을 받음)
+
+ 
+2. 위 출력결과에서 확인된 경로의 ACL이 적절하게 설정되어 있는지 확인 
+ 
+확인된 경로의 ex> - Program Files\Microsoft SQL Server\MSSQL$InstanceName\Binn
+                - Program Files\Microsoft SQL Server\MSSQL$InstanceName\Data
+                - Program Files\Microsoft SQL Server\MSSQL$InstanceName\LOG
+                - Program Files\Microsoft SQL Server\MSSQL$InstanceName\Backup 등의 경로에 대해
+SQL Server service accounts 와 local Administrators 계정만 접근 가능하도록 설정되어 있는지 확인
+ 
+[CHECK] Everyone:(F)의 권한 제거하고 꼭 필요한 권한만 부여하였는지 확인 
+ 
+
+(1개 행 적용됨)
+ 
+[D-12] END
+=======================================================================
+콘솔을 통해 설정사항을 확인해야 함
+=======================================================================
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+=======================================================================
+[D-13] 데이터베이스의 주요 설정파일, 패스워드 파일 등과 같은 주요 파일들의 접근권한 설정 
+=======================================================================
+ 
+콘솔 확인 
+ 
+[CHECK] D-12의 진단결과로 양호, 취약여부 판단 가능 
+ 
+
+(1개 행 적용됨)
+ 
+[D-13] END
+=======================================================================
+D-12의 진단결과 확인 후 판단
+=======================================================================
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+=======================================================================
+[D-14] 관리자 이외의 사용자가 오라클 리스너의 접속을 통해 리스너 로그 및 trace 파일에 대한 변경 설정 
+=======================================================================
+ 
+N/A 
+ 
+[CHECK] MS-SQL은 해당사항 없음 
+ 
+
+(1개 행 적용됨)
+ 
+[D-14] END
+=======================================================================
+MS-SQL은 해당사항 없음
+=======================================================================
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+=======================================================================
+[D-15] 응용 프로그램 또는 DBA 계정의 Role이 Public으로 설정되지 않도록 조정 
+=======================================================================
+ 
+콘솔 확인 
+ 
+[CHECK] 시작 -> 모든 프로그램 -> Microsoft SQL Server 2005 or 2008 -> SQL Server Management Studio 
+        -> 개체 탐색기에서 서버 선택 -> 하위메뉴의 보안 선택 -> 하위메뉴의 로그인 선택 (서버역할 에서 Role로서 권한부여 여부 확인 가능) 
+        -> 계정별 속성 메뉴 -> 보안 개체 페이지 -> 검색 버튼 -> 서버 '인스턴스 네임' -> Role로서 권한을 부여하고 있는지 여부 확인 
+ 
+          ※ 명시적으로 권한을 부여하는 경우 취약, 단 명시적 권한 부여설정 중 'SQL 연결' 권한은 예외
+ 
+User                                                                                                                             Object                                                                                                                           permission_name
+-------------------------------------------------------------------------------------------------------------------------------- -------------------------------------------------------------------------------------------------------------------------------- --------------------------------------------------------------------------------------------------------------------------------
+public                                                                                                                           lsn_time_mapping                                                                                                                 SELECT
+public                                                                                                                           fn_cdc_get_all_changes_ ...                                                                                                      SELECT
+public                                                                                                                           fn_cdc_get_net_changes_ ...                                                                                                      SELECT
+
+(3개 행이 영향을 받음)
+
+(1개 행 적용됨)
+
+ 
+[D-15] END
+=======================================================================
+콘솔을 통해 설정사항을 확인해야 함
+=======================================================================
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+=======================================================================
+[D-16] OS_ROLES, REMOTE_OS_AUTHENTICATION, REMOTE_OS_ROLES를 FALSE로 설정 
+=======================================================================
+ 
+N/A 
+ 
+[CHECK] MS-SQL은 해당사항 없음 
+ 
+
+(1개 행 적용됨)
+ 
+[D-16] END
+=======================================================================
+네 진단 항목 모두 양호로 확인되어야 양호로 판단
+=======================================================================
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+=======================================================================
+[D-17] 패스워드 확인함수 설정 
+=======================================================================
+ 
+콘솔 확인 
+ 
+[CHECK] Windows 인증방식을 사용 시 Windows의 계정 정책을 적용받기 때문에 D-03 진단결과 패스워드 복잡성 설정이 되어 있다면 양호로 판단함 
+ 
+name                                                                                                                             is_disabled
+-------------------------------------------------------------------------------------------------------------------------------- -----------
+
+(0개 행이 영향을 받음)
+
+(1개 행 적용됨)
+
+ 
+[D-17] END
+=======================================================================
+D-03의 진단결과 확인 후 판단
+=======================================================================
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+=======================================================================
+[D-18] 인가되지 않은 Object Owner의 존재 여부 
+=======================================================================
+ 
+VIEW :        230개
+USER_TABLE :          1개
+SQL_INLINE_TABLE_VALUED_FUNCTION :          2개
+ 
+결과 확인 후 인터뷰
+
+(1개 행 적용됨)
+ 
+[CHECK] No Results가 출력되면 양호, 
+        출력된 테이블들은 Public Role 부여로 미흡한 상태이지만 사이트 구성 환경의 특성에 따라 
+        Public Role을 사용할 수 있기 때문에 담당자와 인터뷰 후 양호, 취약 여부를 판단해야 함
+ 
+          ※ 취약하다고 판단되어 조치 권고 시 문제가 발생할 수 있기 때문
+ 
+[D-18] END
+=======================================================================
+GUEST와 PUBLIC 권한으로 접근 가능한 Object Group과 Object 개수가 출력되면 담당자와 인터뷰를 통해 취약 여부를 판단해야 함
+=======================================================================
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+=======================================================================
+[D-19] grant option이 role에 의해 부여되도록 설정 
+=======================================================================
+ 
+< master >
+No Results
+ 
+< tempdb >
+No Results
+ 
+< model >
+No Results
+ 
+< msdb >
+No Results
+ 
+< db_adm >
+No Results
+ 
+< db_mst >
+No Results
+ 
+< db_nah >
+No Results
+ 
+< db_nip >
+No Results
+ 
+< db_mig_adm >
+No Results
+ 
+< db_mig_mst >
+No Results
+ 
+< db_mig_nah >
+No Results
+ 
+< db_mig_nip >
+No Results
+ 
+< temp_data >
+No Results
+ 
+< db_asis >
+No Results
+ 
+< db_asis_cic >
+No Results
+ 
+< db_asis_nias >
+No Results
+ 
+< db_ctx >
+No Results
+ 
+< db_zone_cic >
+No Results
+ 
+< db_zone_backup >
+No Results
+ 
+< db_adm_bak >
+No Results
+ 
+ 
+
+(1개 행 적용됨)
+ 
+[CHECK] No Results가 출력되면 양호, 관리자 계정이외에 With grant option이 존재하면 취약 
+ 
+[D-19] END
+=======================================================================
+출력 결과를 참조하여 양호, 취약여부 판단
+=======================================================================
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+=======================================================================
+[D-20] 데이터베이스의 자원 제한 기능을TRUE로 설정 
+=======================================================================
+ 
+N/A 
+ 
+[CHECK] MS-SQL은 전역 리소스를 통해 자원을 관리하기 때문에 해당사항 없음 
+ 
+
+(1개 행 적용됨)
+ 
+[D-20] END
+=======================================================================
+MS-SQL은 해당사항 없음
+=======================================================================
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+=======================================================================
+[D-21] 데이터베이스에 대해 최신 보안패치와 벤더 권고사항을 모두 적용 
+=======================================================================
+ 
+Version                                                                                                                                                                                                                                                          Service Pack
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+12.0.2000.8                                                                                                                                                                                                                                                      RTM
+
+(1개 행 적용됨)
+
+ 
+[CHECK] 벤더사의 최신 업데이트 패치 여부 확인 (최근 6개월 ~ 1년 이내의 패치가 존재하나 미 업데이트 시 취약) 
+ 
+          ※ http://support.microsoft.com/kb/321185/en-us 참조
+ 
+
+(1개 행 적용됨)
+ 
+[D-21] END
+=======================================================================
+벤더 홈페이지에 방문하여 각 서비스팩, RTM 버전별 최신패치를 확인 후 양호, 취약여부 판단 
+=======================================================================
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+=======================================================================
+[D-22] 데이터베이스의 접근, 변경, 삭제 등의 감사기록이 기관의 감사기록 정책에 적합하도록 설정 
+=======================================================================
+ 
+콘솔 확인 및 인터뷰 
+ 
+1. MS-SQL Server에 대한 연결감사 설정 유무 확인 
+ 
+[CHECK] 시작 -> 모든 프로그램 -> Microsoft SQL Server 2005 or 2008 -> SQL Server Management Studio 
+        -> 개체 탐색기에서 서버 선택 -> 속성 메뉴 -> 보안 페이지 -> 로그인 감사 -> 설정유무 확인 (감사수준이 "실패한 로그인과 성공한 로그인 모두"로 선택되어 있으면 양호)
+ 
+2. 데이터베이스의 접근, 변경, 삭제 등의 감사기록 설정 유무 확인 
+ 
+[CHECK] ① MS-SQL 2008의 경우 SQL Server Management Studio를 통해 감사기록 설정을 할 수 있어 SQL Server Management Studio로 감사기록 설정상태를 확인할 수 있음 
+          시작 -> 모든 프로그램 -> Microsoft SQL Server 2005 or 2008 -> SQL Server Management Studio 
+          -> 하위메뉴의 보안 선택 -> 하위메뉴의 감사 선택 -> 감사메뉴 하위에 데이터베이스의 접근, 변경, 삭제등의 감사기록 설정이 존재하는 지 확인 (미설정 시 취약) 
+        ② MS-SQL 2000, 2005의 경우 SQL Server Management Studio를 통해 확인이 어려워 담당자와 인터뷰를 통해  데이터베이스 감사기록, 
+          백업 정책 관련 지침이 존재하는지 확인 후 확인된 내용을 토대로 실제 감사기록 및 백업이 이루어지는지 확인이 필요함 
+ 
+          ※ DB 접근제어 솔루션과 같은 솔루션을 이용하여 감사기록이 수집되고 있을 시 양호로 판단함
+
+(1개 행 적용됨)
+ 
+[D-22] END
+=======================================================================
+인터뷰를 통해 데이터베이스 감사기록, 백업 정책관련 지침이 존재하는지 확인 
+확인된 내용을 토대로 실제 감사 기록 및 백업이 이루어지는지 확인이 필요함 
+=======================================================================
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+=======================================================================
+[D-23] 보안에 취약하지 않은 버전의 데이터베이스 사용 
+=======================================================================
+ 
+Version                                                                                                                                                                                                                                                          Service Pack
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+12.0.2000.8                                                                                                                                                                                                                                                      RTM
+
+(1개 행 적용됨)
+
+ 
+[CHECK] 벤더사의 최신 업데이트 패치 여부 확인 (최근 6개월 ~ 1년 이내의 패치가 존재하나 미 업데이트 시 취약) 
+ 
+          ※ http://support.microsoft.com/kb/321185/en-us 참조
+ 
+
+(1개 행 적용됨)
+ 
+[D-23] END
+=======================================================================
+D-21 진단결과와 동일하므로 참조 
+=======================================================================
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+=======================================================================
+[D-24] Audit Table이 데이터베이스 관리자 계정에 속하도록 설정 
+=======================================================================
+ 
+N/A 
+ 
+[CHECK] MS-SQL의 경우 Database의 Table이 아닌 Log File로 감사기록을 저장하고 로그뷰어를 통해 조회하기 때문에 해당사항 없음 
+ 
+
+(1개 행 적용됨)
+ 
+[D-24] END
+=======================================================================
+MS-SQL은 해당사항 없음
+=======================================================================
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+========================================================================
+############################## 결 과 취 합 #############################
+========================================================================
+ 
+D-1-① : 취약
+D-1-① : 양호
+D-1-② : 양호
+D-2-① : 결과 확인 후 인터뷰
+D-2-② : 양호
+D-2-③ : 결과 확인
+D-3-① : 취약
+D-3-② : 양호
+D-4 :	결과 확인 후 인터뷰
+D-5 :	콘솔 확인
+D-6 :	결과 확인 후 인터뷰
+D-7 :	콘솔 확인
+D-8 :	결과 확인 후 인터뷰
+D-9 : N/A
+D-10 : 콘솔 확인
+D-11 : N/A
+D-12 : 콘솔 확인 N/A
+D-13 : 콘솔 확인
+D-14 : N/A
+D-15 : 콘솔 확인
+D-16 : N/A
+D-17 : 콘솔 확인 N/A
+D-18 : 결과 확인 후 인터뷰
+D-19 : 결과 확인 N/A
+D-20 : N/A
+D-21 : 최신 업데이트 및 패치여부 확인
+D-22 : 콘솔 확인 및 인터뷰
+D-23 : 최신 업데이트 및 패치여부 확인
+D-24 : N/A
+ 
+
+완료 시간: 2025-04-22T11:45:25.5216622+09:00
